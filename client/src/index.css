@@ -1,0 +1,330 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   OPEN-LAW-AUSTRIA — Legal Color Palette
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@layer base {
+  :root {
+    --background: 40 18% 96%;
+    --foreground: 0 0% 0%;
+    --card: 40 20% 98%;
+    --card-foreground: 0 0% 0%;
+    --popover: 40 20% 98%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 220 50% 28%;
+    --primary-foreground: 40 18% 96%;
+    --secondary: 40 15% 91%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 40 12% 92%;
+    --muted-foreground: 0 0% 25%;
+    --accent: 40 70% 50%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 12% 85%;
+    --input: 220 12% 85%;
+    --ring: 220 50% 28%;
+    --radius: 0.5rem;
+
+    --sidebar: 40 20% 97%;
+    --sidebar-background: 40 20% 97%;
+    --sidebar-foreground: 0 0% 0%;
+    --sidebar-primary: 220 50% 28%;
+    --sidebar-primary-foreground: 40 18% 96%;
+    --sidebar-accent: 40 15% 91%;
+    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-border: 220 12% 85%;
+    --sidebar-ring: 220 50% 28%;
+
+    --chart-1: 220 50% 40%;
+    --chart-2: 40 70% 50%;
+    --chart-3: 150 40% 35%;
+    --chart-4: 0 60% 45%;
+    --chart-5: 280 40% 45%;
+  }
+
+  .dark {
+    --background: 224 25% 10%;
+    --foreground: 0 0% 100%;
+    --card: 224 25% 13%;
+    --card-foreground: 0 0% 100%;
+    --popover: 224 25% 13%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 40 70% 60%;
+    --primary-foreground: 224 35% 12%;
+    --secondary: 224 20% 18%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 224 20% 16%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 40 70% 55%;
+    --accent-foreground: 224 25% 10%;
+    --destructive: 0 62% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 224 18% 22%;
+    --input: 224 18% 22%;
+    --ring: 40 70% 60%;
+
+    --sidebar: 224 30% 8%;
+    --sidebar-background: 224 30% 8%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 40 70% 60%;
+    --sidebar-primary-foreground: 224 30% 8%;
+    --sidebar-accent: 224 25% 15%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 224 22% 16%;
+    --sidebar-ring: 40 70% 55%;
+
+    --chart-1: 40 70% 60%;
+    --chart-2: 188 40% 55%;
+    --chart-3: 150 40% 50%;
+    --chart-4: 0 55% 60%;
+    --chart-5: 280 35% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: auto;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  .law-text {
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 1rem;
+    line-height: 1.75;
+    color: hsl(var(--foreground));
+  }
+
+  .law-text .paragraph-heading {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-top: 1.5em;
+    margin-bottom: 0.4em;
+    color: hsl(var(--primary));
+  }
+
+  .sidebar-link-active {
+    @apply bg-sidebar-accent text-sidebar-primary font-semibold;
+  }
+
+  /* ── Tailwind Typography — Farb-Overrides ───────────────────────────────── */
+  .ris-content {
+    --tw-prose-body: hsl(var(--foreground));
+    --tw-prose-bullets: hsl(var(--foreground));
+    --tw-prose-counters: hsl(var(--foreground));
+    --tw-prose-bold: hsl(var(--foreground));
+    --tw-prose-lead: hsl(var(--foreground));
+    color: hsl(var(--foreground));
+  }
+
+  .dark .ris-content {
+    --tw-prose-invert-body: hsl(var(--foreground));
+    --tw-prose-invert-bullets: hsl(var(--foreground));
+    --tw-prose-invert-counters: hsl(var(--foreground));
+    --tw-prose-invert-bold: hsl(var(--foreground));
+    --tw-prose-invert-lead: hsl(var(--foreground));
+    color: hsl(var(--foreground));
+  }
+
+  .ris-content p,
+  .ris-content li,
+  .ris-content span,
+  .ris-content div,
+  .ris-content td,
+  .ris-content th {
+    color: hsl(var(--foreground));
+  }
+
+  .ris-content * {
+    max-width: 100% !important;
+    word-wrap: break-word;
+  }
+
+  .ris-content table {
+    font-size: 0.9rem;
+  }
+
+  /* ── RIS Formatierung ───────────────────────────────────────────────────────
+
+     Ziel:
+       • Keine Leerzeilen zwischen Einträgen
+       • Ziffern (1., 2.) und Buchstaben (a), b)) korrekt eingerückt
+       • Zeilenumbruch bei langem Fließtext beginnt UNTER dem Textanfang,
+         NICHT unter der Ziffer/dem Buchstaben
+       • Buchstaben doppelt eingerückt (natürlich durch Verschachtelung)
+
+     Struktur im RIS-HTML:
+       ol.wai-absatz-list
+         li > div.content > div.Abs_small_indent
+           span.Absatzzahl "(1)"   ← Absatznummer
+           span "Fließtext..."
+           ol.wai-list[style="margin-left:27pt"]    ← Ziffern
+             li > div.SymE1 "1."  +  div.content "Text..."
+               ol.wai-list  (kein margin-left → doppelte Einrückung durch Verschachtelung)
+                 li > div.SymE2 "a)"  +  div.content "Text..."
+
+     WICHTIG: margin-left auf ol/ul OHNE !important, damit das RIS-Inline-
+     Attribut style="margin-left:27pt" wirkt (Inline-Styles > CSS-Klassen).
+  ─────────────────────────────────────────────────────────────────────────── */
+
+  /* Basis: keine Tailwind-prose-Abstände, kein eigenes padding/margin */
+  .ris-content ol,
+  .ris-content ul {
+    list-style: none !important;
+    padding-left: 0 !important;
+    margin-left: 0;          /* kein !important → inline style="margin-left:27pt" wirkt */
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  /* li: alle Tailwind-prose-Abstände entfernen */
+  .ris-content li {
+    list-style: none !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .ris-content li::marker { content: "" !important; }
+  .ris-content li::before { content: none !important; }
+
+  /* ── Flexbox-Layout für wai-list (Ziffern + Buchstaben) ─────────────────
+     Tailwind prose fügt über die Regel "li > * + *" dem zweiten Kind
+     (div.content) ein margin-top hinzu → das erzeugt die Leerzeile.
+     Flexbox auf li UND margin-top:0 auf alle direkten Kinder beseitigt beides.
+
+     Warum Flexbox statt float:
+       Mit float + overflow:hidden umrundet der Text weiterhin die Ziffer.
+       Flexbox weist dem div.content einen eigenen Formatierungskontext zu
+       (flex: 1; min-width: 0), sodass Zeilenumbrüche innerhalb des content-
+       Bereichs bleiben — genau wie im RIS. */
+  .ris-content ol.wai-list > li {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  /* Direkte Kinder des li: kein margin-top (neutralisiert prose "li > * + *") */
+  .ris-content ol.wai-list > li > * {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Symbol-Spalte (Ziffer/Buchstabe): fixe Breite, kein Schrumpfen */
+  .ris-content .SymE1,
+  .ris-content .SymE2 {
+    flex-shrink: 0;
+    min-width: 2em;
+    padding-right: 0.25em;
+    float: none; /* reset falls anderswo gesetzt */
+  }
+
+  /* Text-Spalte: nimmt verbleibende Breite ein.
+     min-width:0 ist entscheidend — ohne es bricht flex-Item nicht um und
+     Text läuft über den Container hinaus. */
+  .ris-content ol.wai-list > li > .content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ── Absatzzahl (1), (2) ─────────────────────────────────────────────────
+     Inline-Block mit Mindestbreite, damit Text daneben beginnt.
+     Kein Flex nötig — Absatzzahl und Text sind Inline-Geschwister. */
+  .ris-content .Absatzzahl {
+    display: inline-block;
+    min-width: 2.2em;
+    padding-right: 0.15em;
+  }
+
+  /* Einfache Absatz-p ohne Absatzzahl */
+  .ris-content p.Abs,
+  .ris-content p.p {
+    margin-top: 0;
+    margin-bottom: 0.3em;
+  }
+
+  /* Metadaten-Block aus RIS-HTML ausblenden */
+  .ris-content [id*="SchlagworteContainer"],
+  .ris-content [id*="SchlagworteContainer"] ~ *,
+  .ris-content [id*="VeroeffentlichungsdatumAenderungsdatumContainer"],
+  .ris-content [id*="VeroeffentlichungsdatumAenderungsdatumContainer"] ~ *,
+  .ris-content [id*="EliContainer"],
+  .ris-content [id*="EliContainer"] ~ * {
+    display: none !important;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .search-highlight {
+    background: hsl(40 80% 75%);
+    color: #1a1a1a;
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+
+  /* Textmarker: immer dunkel — höchste Priorität */
+  .ris-content mark.ola-hl,
+  mark.ola-hl {
+    color: #1a1a1a !important;
+  }
+  .ris-content mark.ola-hl *,
+  mark.ola-hl * {
+    color: #1a1a1a !important;
+  }
+
+  /* ── §-Verlinkung: ola-para-link ─────────────────────────────────────────
+     Dezent: blaue Schriftfarbe (--primary im Light Mode, --primary im Dark Mode),
+     kein Underline im Ruhezustand, Underline bei Hover, Cursor pointer.
+     Kein extra Padding, um den Lesefluss nicht zu stören. */
+  .ris-content .ola-para-link,
+  .ola-para-link {
+    color: hsl(var(--primary)) !important;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: text-decoration 120ms ease, opacity 120ms ease;
+  }
+
+  .ris-content .ola-para-link:hover,
+  .ola-para-link:hover {
+    text-decoration: underline;
+    opacity: 0.85;
+  }
+
+  .ris-content .ola-para-link:active,
+  .ola-para-link:active {
+    opacity: 0.65;
+  }
+
+}
+
+/* Utility: UI-Schrift (Verdana) für bestimmte Überschriften */
+.font-ui {
+  font-family: Verdana, Geneva, sans-serif;
+}

@@ -1,0 +1,27 @@
+# ─── Dependencies ───────────────────────────────────────────
+node_modules/
+
+# ─── Build output ────────────────────────────────────────────
+dist/
+
+# ─── Database (contains user data: bookmarks, notes, highlights)
+data/
+data.db
+data.db-wal
+data.db-shm
+
+# ─── Environment / Secrets ───────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ─── Drizzle migrations (auto-generated, not for version control)
+migrations/
+
+# ─── OS / Editor ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo

@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      # Alle Daten (SQLite-DB, WAL) landen im ./data Ordner im Projektverzeichnis.
+      # Dieser Ordner wird NICHT ins Git-Repository eingecheckt.
+      - ./data:/app/data
+    env_file:
+      - path: .env
+        required: false   # Startet auch ohne .env (alle Defaults gelten)
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped

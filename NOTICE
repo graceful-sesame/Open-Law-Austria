@@ -1,0 +1,63 @@
+NOTICE — Drittanbieter-Lizenzen und Urheberrechtshinweise
+==========================================================
+
+Diese Anwendung (Open-Law-Austria) ist ein inoffizieller Viewer für
+österreichische Bundesgesetze und steht in keiner Verbindung mit dem
+Bundeskanzleramt Österreich oder dem Rechtsinformationssystem des Bundes (RIS).
+
+
+1. Rechtsdaten — RIS Open Government Data
+------------------------------------------
+
+Die in dieser Anwendung angezeigten Rechtsdaten (Gesetzestexte, Paragraphen,
+Artikel und Anlagen des konsolidierten österreichischen Bundesrechts) stammen
+ausschließlich aus dem:
+
+  Rechtsinformationssystem des Bundes (RIS)
+  Bundeskanzleramt Österreich
+  https://www.ris.bka.gv.at/
+  https://data.bka.gv.at/ris/api/v2.6/
+
+Lizenz der Quelldaten:
+  Creative Commons Namensnennung 4.0 International (CC BY 4.0)
+  https://creativecommons.org/licenses/by/4.0/legalcode.de
+
+Rechtlicher Hinweis gemäß CC BY 4.0, Abschnitt 3(a):
+  - Urheber / Lizenzgeber:
+      Bundeskanzleramt Österreich, Abteilung III/9 –
+      Rechtsinformationssystem des Bundes (RIS)
+  - Werk: Bundesrecht konsolidiert, Österreich (BrKons)
+  - Lizenz-URI: https://creativecommons.org/licenses/by/4.0/
+  - Quelldaten-URI: https://data.bka.gv.at/ris/api/v2.6/Bundesrecht
+  - Haftungsausschluss des Lizenzgebers:
+      Die Daten werden ohne Gewähr bereitgestellt. Rechtsverbindlich ist
+      ausschließlich das Bundesgesetzblatt (BGBl.).
+  - Hinweis auf Änderungen (§ 3(a)(1)(A) CC BY 4.0):
+      Die Originaldaten werden von dieser Anwendung über die RIS OGD API v2.6
+      abgerufen, im HTML-Format lokal zwischengespeichert (SQLite) und
+      im Browser aufbereitet dargestellt. Es handelt sich um eine technische
+      Weiterverarbeitung der Rohdaten ohne inhaltliche Änderungen am
+      Gesetzestext.
+
+Nutzungsbedingungen data.gv.at:
+  Diese Anwendung entspricht den Nutzungsbedingungen des österreichischen
+  Open-Data-Portals (https://www.data.gv.at/). Der App-Name "Open-Law-Austria"
+  stellt keinen amtlichen Zusammenhang zum Bund oder zum BKA her.
+
+
+2. Lucide Icons
+---------------
+
+  Lizenz: ISC License
+  Copyright (c) 2020 Lucide Contributors
+  https://lucide.dev/
+  https://github.com/lucide-icons/lucide/blob/main/LICENSE
+
+
+3. Weitere Open-Source-Bibliotheken
+-------------------------------------
+
+Alle weiteren verwendeten Bibliotheken sind in der Datei `package.json`
+aufgeführt und stehen unter ihren jeweiligen Open-Source-Lizenzen
+(MIT, Apache 2.0, ISC). Eine vollständige Auflistung ist über
+`npm list --all` abrufbar.
