@@ -42,6 +42,8 @@ Bundesgesetze. Datenquelle ist ausschließlich das **Rechtsinformationssystem de
 
 - Node.js ≥ 18
 - npm ≥ 9
+- 1GB Ram
+- 4GB Disk-Size
 
 ### Installation & Start
 
