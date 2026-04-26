@@ -69,7 +69,7 @@ docker run -p 5000:5000 -v $(pwd)/data:/app/data open-law-austria
 ### Docker Compose
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 Die App ist dann auf http://localhost:5000 erreichbar. Die Datenbank wird im Volume `open-law-austria-data` persistiert.
