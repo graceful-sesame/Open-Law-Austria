@@ -24,6 +24,36 @@ Bundesgesetze. Datenquelle ist ausschließlich das **Rechtsinformationssystem de
 
 ---
 
+## Fotos
+
+**Startseite:**
+
+<img width="2547" height="1215" alt="Hauptseite" src="https://github.com/user-attachments/assets/ba373bb4-06d1-4915-a800-25485ae59b59" />
+
+#
+
+**Beispiel Gesetzestext:**
+
+<img width="2537" height="1213" alt="Gesetze" src="https://github.com/user-attachments/assets/0b974c15-5952-4ec3-a95c-3027a8582537" />
+
+#
+
+**Suchfunktion:**
+
+<img width="2552" height="1222" alt="Suchfunktion" src="https://github.com/user-attachments/assets/7449c45b-8587-4894-936f-10d5e6684168" />
+
+#
+
+**Lesezeichen:**
+
+<img width="2551" height="1230" alt="Lesezeichen" src="https://github.com/user-attachments/assets/d9284c2b-da3e-4002-bc3a-35caf6bd2d9f" />
+
+#
+
+**Admin Panel:**
+
+<img width="2555" height="1231" alt="Admin Panel" src="https://github.com/user-attachments/assets/f693b42d-dcf4-4d9f-b8e0-52129136383f" />
+
 ## Stack
 
 | Schicht | Technologie |
