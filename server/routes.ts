@@ -674,7 +674,7 @@ export function registerRoutes(_httpServer: Server, app: Express) {
     }
 
     try {
-      const test = await searchBundesrecht({ gesetzesnummer, seitengroesse: 20 });
+      const test = await searchBundesrecht({ gesetzesnummer, seitengroesse: 10 });
       if (test.totalHits === 0) {
         return res.status(422).json({ error: `Keine Dokumente für Gesetzesnummer ${gesetzesnummer} in RIS gefunden.` });
       }
@@ -781,7 +781,7 @@ export function registerRoutes(_httpServer: Server, app: Express) {
     const gesetzesnummer = String(req.query.gesetzesnummer ?? "").trim();
     if (!gesetzesnummer) return res.status(400).json({ error: "gesetzesnummer fehlt" });
     try {
-      const result = await searchBundesrecht({ gesetzesnummer, seitengroesse: 20 });
+      const result = await searchBundesrecht({ gesetzesnummer, seitengroesse: 10 });
       if (result.totalHits === 0) return res.json({ found: false, totalHits: 0 });
       const first = result.documents[0];
       return res.json({

@@ -40,6 +40,28 @@ export interface RisSearchResult {
 }
 
 /**
+ * RIS OGD API v2.6 erwartet die Seitengröße als Enum im Parameter
+ * `DokumenteProSeite` (Ten | Twenty | Fifty | OneHundred). Ein numerischer
+ * Parameter wie `Seitengroesse` existiert nicht und wird still ignoriert
+ * (die API liefert dann den Default von 20 Treffern pro Seite).
+ *
+ * Bildet eine Zahl auf den nächstgrößeren erlaubten Wert ab (Obergrenze 100).
+ */
+const RIS_PAGE_SIZES = [
+  [10, "Ten"],
+  [20, "Twenty"],
+  [50, "Fifty"],
+  [100, "OneHundred"],
+] as const;
+
+export function toDokumenteProSeite(size: number): (typeof RIS_PAGE_SIZES)[number][1] {
+  for (const [n, name] of RIS_PAGE_SIZES) {
+    if (size <= n) return name;
+  }
+  return "OneHundred";
+}
+
+/**
  * Suche nach Dokumenten im konsolidierten Bundesrecht.
  */
 export async function searchBundesrecht(params: {
@@ -64,7 +86,7 @@ export async function searchBundesrecht(params: {
   if (params.seitennummer && params.seitennummer > 1) {
     url.searchParams.set("Seitennummer", String(params.seitennummer));
   }
-  url.searchParams.set("Seitengroesse", String(params.seitengroesse ?? 100));
+  url.searchParams.set("DokumenteProSeite", toDokumenteProSeite(params.seitengroesse ?? 100));
 
   const res = await fetch(url.toString(), {
     headers: { Accept: "application/json" },
@@ -342,9 +364,12 @@ export function extractParagraphTitle(
 export async function fetchAllDocumentsForLaw(gesetzesnummer: string): Promise<RisDocumentRef[]> {
   const allDocs: RisDocumentRef[] = [];
   let page = 1;
-  // RIS API is hard-limited to 20 results per page regardless of Seitengroesse parameter
-  const PAGE_SIZE = 20;
-  const MAX_PAGES = 100; // safety cap (100 * 20 = 2000 docs)
+  // Maximum page size supported by RIS OGD API v2.6 (DokumenteProSeite=OneHundred).
+  const PAGE_SIZE = 100;
+  const MAX_PAGES = 50; // safety cap (50 * 100 = 5000 docs)
+  // RIS-Netiquette ("Technische Rahmenbedingungen", data.bka.gv.at/ris/api/v2.6/):
+  // max. 0,5 Requests pro Sekunde → mindestens 2 s Pause zwischen den Seiten.
+  const PAGE_DELAY_MS = 2000;
 
   while (page <= MAX_PAGES) {
     const result = await searchBundesrecht({
@@ -363,8 +388,7 @@ export async function fetchAllDocumentsForLaw(gesetzesnummer: string): Promise<R
 
     page++;
 
-    // Rate limiting: 150ms between pages
-    await new Promise((r) => setTimeout(r, 150));
+    await new Promise((r) => setTimeout(r, PAGE_DELAY_MS));
   }
 
   return allDocs;
