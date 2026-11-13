@@ -47,14 +47,22 @@ export function asArray<T>(v: T | T[] | undefined | null): T[] {
 export function cleanText(s: string): string {
   return s
     .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<[^>]+>/g, "")
+    .replace(/<\/?[a-zA-Z][^<>]*>/g, "") // nur echte Tags, nicht "x < 3 und y > 4"
     .replace(/&nbsp;|&#160;|&#xa0;/gi, " ")
-    .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&") // zuletzt, damit "&amp;lt;" nicht doppelt dekodiert wird
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function safeDecode(s: string): string {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
 }
 
 function scalarOf(v: unknown): Scalar | undefined {
@@ -167,7 +175,7 @@ function parseReference(ref: unknown): SearchHit {
       geschaeftszahl: cleanText(String(o.Geschaeftszahl ?? "")),
       datum: String(o.Entscheidungsdatum ?? ""),
       gericht: String(o.Gericht ?? ""),
-      id: decodeURIComponent(id),
+      id: safeDecode(id),
     };
   });
 
@@ -207,5 +215,6 @@ export function simplifyApiError(msg: string): string {
   if (m) return `Ungültiger Wert "${m[2]}" für ${m[1]} (erwartet: ${m[3]}).`;
   const c = msg.match(/has invalid child element '(\w+)'/);
   if (c) return `Unbekannter Parameter/Wert "${c[1]}".`;
-  return msg.replace(/^soap:Client\.\s*/, "").slice(0, 400);
+  if (/Seitennummer ist höher/i.test(msg)) return "Die angeforderte Seite liegt hinter dem Ende der Trefferliste (kleinere `seite` wählen).";
+  return msg.replace(/^soap:Client\.?\s*/, "").slice(0, 400);
 }

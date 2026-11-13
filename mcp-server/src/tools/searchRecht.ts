@@ -21,6 +21,7 @@ import {
   filterSummary,
   formatGenericHit,
   formatNormHit,
+  mergeExtraParams,
   noHitsText,
   normalizeDate,
   pagingFooter,
@@ -122,7 +123,8 @@ export function buildRechtParams(app: AppInfo, a: RechtArgs): { params: Record<s
   if (bis) p[requireParam(app, ["Kundmachung.Bis", "Kundgemacht.Bis", "Kundmachungsdatum.Bis", "SitzungsdatumBis", "BeschlussdatumBis", "EntscheidungsdatumBis", "BisInkrafttretensdatum"], "kundmachung_bis")] = bis;
 
   if (a.bundesland?.length) Object.assign(p, bundeslandParams(app, a.bundesland));
-  Object.assign(p, sortParams(a.sortierung), a.weitere_parameter ?? {}, pagingParams(a.seite, a.pro_seite));
+  Object.assign(p, sortParams(a.sortierung), pagingParams(a.seite, a.pro_seite));
+  mergeExtraParams(p, a.weitere_parameter);
 
   const searchable = Object.keys(p).filter(
     (k) => !["DokumenteProSeite", "Seitennummer", "Fassung.FassungVom", "Sortierung.SortedByColumn", "Sortierung.SortDirection"].includes(k),
@@ -137,9 +139,9 @@ export function buildRechtParams(app: AppInfo, a: RechtArgs): { params: Record<s
   return { params: p, exact };
 }
 
-async function runRechtSearch(client: RisClient, app: AppInfo, a: RechtArgs, labelPrefix: string) {
+async function runRechtSearch(client: RisClient, app: AppInfo, a: RechtArgs, labelPrefix: string, signal: AbortSignal) {
   const { params, exact } = buildRechtParams(app, a);
-  let res: SearchResult = await client.search(app, params);
+  let res: SearchResult = await client.search(app, params, signal);
   let note = "";
   if (exact) {
     const before = res.hits.length;
@@ -147,7 +149,8 @@ async function runRechtSearch(client: RisClient, app: AppInfo, a: RechtArgs, lab
       ...res,
       hits: res.hits.filter((h) => normalizeParagraphLabel(getStr(h.meta, "ArtikelParagraphAnlage") ?? "") === exact),
     };
-    note = `Hinweis: Die API filtert Paragraphen nur numerisch; von ${before} Treffern dieser Seite passen ${res.hits.length} exakt auf "${a.paragraph}".`;
+    const more = (res.page || 1) * (res.pageSize || before || 1) < res.total ? " Weitere Seiten können zusätzliche Treffer enthalten (seite+1)." : "";
+    note = `Hinweis: Die API filtert Paragraphen nur numerisch; von ${before} Treffern dieser Seite passen ${res.hits.length} exakt auf "${a.paragraph}".${more}`;
   }
   const filters = filterSummary({
     applikation: app.name,
@@ -165,7 +168,7 @@ async function runRechtSearch(client: RisClient, app: AppInfo, a: RechtArgs, lab
   const label = `${labelPrefix} (${app.label})`;
   if (res.total === 0 || res.hits.length === 0) {
     return textResult(
-      [noHitsText(label, filters, KONSOLIDIERT.has(app.name) ? ["Für Gesetzesabkürzungen den Parameter `titel` verwenden (z. B. titel=\"StGB\"); ältere Fassungen über `stichtag` oder alle_fassungen=true."] : []), note]
+      [noHitsText(label, filters, KONSOLIDIERT.has(app.name) ? ["Für Gesetzesabkürzungen den Parameter `titel` verwenden (z. B. titel=\"StGB\"); ältere Fassungen über `stichtag` oder alle_fassungen=true."] : [], exact ? undefined : res, a.seite), note]
         .filter(Boolean)
         .join("\n"),
     );
@@ -206,7 +209,10 @@ const konsolidiertShape = {
     .string()
     .max(30)
     .optional()
-    .describe('Nur konsolidierte Fassungen: Paragraph/Artikel/Anlage, z. B. "288", "5a", "278-279", "Art 7", "Anlage 1".'),
+    .describe(
+      'Nur konsolidierte Fassungen: Paragraph/Artikel/Anlage, z. B. "288", "5a", "278-279", "Art 7", "Anlage 1". ' +
+        "Hinweis: \"129\" liefert auch 129a, 129b …",
+    ),
   abschnitt_typ: z.enum(["Paragraph", "Artikel", "Anlage"]).optional().describe("Typ der Gliederungseinheit (sonst aus `paragraph` abgeleitet)."),
   stichtag: datumSchema
     .optional()
@@ -263,10 +269,10 @@ export function registerSearchRecht(server: McpServer, client: RisClient): void 
       inputSchema: searchBundesrechtShape,
       annotations: { readOnlyHint: true, openWorldHint: true, idempotentHint: true },
     },
-    async (args) =>
-      safely(async () => {
+    async (args, extra) =>
+      safely(extra, async (signal) => {
         const a = args as RechtArgs & { applikation: keyof typeof BUNDESRECHT_APPS };
-        return runRechtSearch(client, BUNDESRECHT_APPS[a.applikation], a, "Bundesrecht");
+        return runRechtSearch(client, BUNDESRECHT_APPS[a.applikation], a, "Bundesrecht", signal);
       }),
   );
 
@@ -282,10 +288,10 @@ export function registerSearchRecht(server: McpServer, client: RisClient): void 
       inputSchema: searchLandesrechtShape,
       annotations: { readOnlyHint: true, openWorldHint: true, idempotentHint: true },
     },
-    async (args) =>
-      safely(async () => {
+    async (args, extra) =>
+      safely(extra, async (signal) => {
         const a = args as RechtArgs & { applikation: keyof typeof LANDESRECHT_APPS };
-        return runRechtSearch(client, LANDESRECHT_APPS[a.applikation], a, "Landesrecht");
+        return runRechtSearch(client, LANDESRECHT_APPS[a.applikation], a, "Landesrecht", signal);
       }),
   );
 
@@ -302,10 +308,10 @@ export function registerSearchRecht(server: McpServer, client: RisClient): void 
       inputSchema: searchSonstigeShape,
       annotations: { readOnlyHint: true, openWorldHint: true, idempotentHint: true },
     },
-    async (args) =>
-      safely(async () => {
+    async (args, extra) =>
+      safely(extra, async (signal) => {
         const a = args as RechtArgs & { applikation: keyof typeof SONSTIGE_APPS };
-        return runRechtSearch(client, SONSTIGE_APPS[a.applikation], a, "Sonstige");
+        return runRechtSearch(client, SONSTIGE_APPS[a.applikation], a, "Sonstige", signal);
       }),
   );
 }

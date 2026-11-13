@@ -49,7 +49,7 @@ const PREFIX_RULES: Array<[RegExp, string]> = [
 ];
 
 export function validateDocumentId(raw: string): string {
-  const id = raw.trim();
+  const id = raw.trim().normalize("NFC");
   if (!ID_PATTERN.test(id)) {
     throw new RisError(
       "invalid_params",

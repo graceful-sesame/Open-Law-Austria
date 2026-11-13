@@ -27,6 +27,8 @@ export function parseParagraph(input: string, typHint?: AbschnittTyp): Paragraph
   } else {
     s = s.replace(/^§§?\s*/, "");
   }
+  // Untergliederungen ("Abs 1", "Z 3", "lit a", "Satz 2") betreffen nur den Text, nicht die Suche.
+  s = s.replace(/\s*(Abs\.?|Absatz|Z\s*\d|Ziffer|lit\.?|Satz|S\s*\d)\b.*$/i, "");
   s = s.replace(/\s+/g, "").replace(/\.$/, "");
 
   const range = s.match(/^(\d+)([a-z]?)(?:-|–|bis)(\d+)([a-z]?)$/i);

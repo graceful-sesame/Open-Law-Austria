@@ -80,9 +80,17 @@ function inlineText(nodes: XNode[]): string {
   return out;
 }
 
+/** Numerische Zeichenreferenzen (&#160; / &#xA0;) dekodieren, falls der Parser sie stehen lässt. */
+function decodeNumericEntities(s: string): string {
+  return s.replace(/&#(x[0-9a-f]{1,6}|\d{1,7});/gi, (m, code: string) => {
+    const n = code[0] === "x" || code[0] === "X" ? Number.parseInt(code.slice(1), 16) : Number.parseInt(code, 10);
+    return Number.isFinite(n) && n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : m;
+  });
+}
+
 function normalizeInline(s: string): string {
-  return s
-    .replace(/ /g, " ")
+  return decodeNumericEntities(s)
+    .replace(/\u00a0/g, " ")
     .split("\n")
     .map((l) => l.replace(/[ \t\r\f\v]+/g, " ").trim())
     .filter((l, i, arr) => l !== "" || (i > 0 && arr[i - 1] !== ""))
@@ -165,7 +173,7 @@ function indent(text: string, level: number): string {
 }
 
 export function parseRisXml(xml: string): DocSection[] {
-  if (/<!DOCTYPE|<!ENTITY/i.test(xml.slice(0, 2000))) {
+  if (/<!DOCTYPE|<!ENTITY/i.test(xml)) {
     throw new RisError("bad_response", "Dokument enthält eine DOCTYPE-Deklaration und wird aus Sicherheitsgründen nicht verarbeitet.");
   }
   let tree: XNode[];

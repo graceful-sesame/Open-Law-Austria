@@ -65,9 +65,15 @@ export function normalizeDate(input: string | undefined, field: string): string 
   return iso;
 }
 
-export function todayVienna(): string {
-  // en-CA liefert JJJJ-MM-TT
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Vienna" }).format(new Date());
+export function todayVienna(now: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Vienna",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
 export function pagingParams(seite?: number, proSeite?: PageSize): Record<string, string> {
@@ -126,7 +132,7 @@ export function hitLink(client: RisClient, app: AppInfo, hit: SearchHit): string
 }
 
 export function resultHeader(label: string, res: SearchResult, seite: number | undefined, filters: string[]): string {
-  const page = seite ?? 1;
+  const page = res.page || seite || 1;
   const size = res.pageSize || res.hits.length || 1;
   const pages = Math.max(1, Math.ceil(res.total / size));
   const lines = [`RIS ${label}: ${res.total} Treffer${res.total ? ` · Seite ${page}/${pages} (${size} pro Seite)` : ""}`];
@@ -135,7 +141,7 @@ export function resultHeader(label: string, res: SearchResult, seite: number | u
 }
 
 export function pagingFooter(res: SearchResult, seite: number | undefined): string {
-  const page = seite ?? 1;
+  const page = res.page || seite || 1;
   const size = res.pageSize || res.hits.length || 1;
   if (page * size < res.total) return `Weitere Treffer: gleiche Suche mit seite=${page + 1}.`;
   return "";
@@ -314,7 +320,11 @@ export function errorResult(e: unknown): CallToolResult {
   return { content: [{ type: "text", text }], isError: true };
 }
 
-export function noHitsText(label: string, filters: string[], extraTips: string[] = []): string {
+export function noHitsText(label: string, filters: string[], extraTips: string[] = [], res?: SearchResult, seite?: number): string {
+  if (res && res.total > 0 && (seite ?? 1) > 1) {
+    const size = res.pageSize || 20;
+    return `RIS ${label}: Seite ${seite} liegt hinter dem Ende (${res.total} Treffer, ${Math.ceil(res.total / size)} Seite(n) à ${size}).`;
+  }
   return [
     `RIS ${label}: keine Treffer.`,
     filters.length ? `Filter: ${filters.join(" · ")}` : "",
@@ -326,12 +336,38 @@ export function noHitsText(label: string, filters: string[], extraTips: string[]
     .join("\n");
 }
 
-/** Wrapper: fängt alle Fehler und liefert saubere Tool-Fehlermeldungen. */
-export async function safely(fn: () => Promise<CallToolResult>): Promise<CallToolResult> {
+/** Gesamtbudget pro Tool-Aufruf (inkl. Warteschlange, Retries, mehrerer Requests). */
+export const TOOL_TIME_BUDGET_MS = 90_000;
+
+/**
+ * Wrapper: fängt alle Fehler, liefert saubere Tool-Fehlermeldungen und stellt ein
+ * AbortSignal bereit, das bei Abbruch durch den Client oder nach dem Zeitbudget feuert.
+ */
+export async function safely(
+  extra: { signal?: AbortSignal } | undefined,
+  fn: (signal: AbortSignal) => Promise<CallToolResult>,
+): Promise<CallToolResult> {
+  const budget = AbortSignal.timeout(TOOL_TIME_BUDGET_MS);
+  const signal = extra?.signal ? AbortSignal.any([extra.signal, budget]) : budget;
   try {
-    return await fn();
+    return await fn(signal);
   } catch (e) {
     return errorResult(e);
+  }
+}
+
+/** Übernimmt weitere_parameter, ohne bereits gesetzte (typisierte) Parameter zu überschreiben. */
+export function mergeExtraParams(target: Record<string, string>, extra: Record<string, string> | undefined): void {
+  if (!extra) return;
+  for (const [k, v] of Object.entries(extra)) {
+    if (k in target) {
+      throw new RisError(
+        "invalid_params",
+        `weitere_parameter.${k} kollidiert mit einem bereits gesetzten Parameter.`,
+        "Bitte das entsprechende Tool-Feld verwenden statt weitere_parameter.",
+      );
+    }
+    target[k] = v;
   }
 }
 

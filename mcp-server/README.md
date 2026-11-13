@@ -87,6 +87,7 @@ und ergänzen:
 ```
 
 - Backslashes im JSON verdoppeln (`\\`) oder normale Schrägstriche verwenden (`C:/Pfad/...`).
+  Leerzeichen im Pfad sind in `args` unproblematisch (jedes Array-Element ist ein Argument).
 - Findet Claude Desktop `node` nicht, den vollen Pfad angeben, z. B.
   `"command": "C:\\Program Files\\nodejs\\node.exe"`.
 - Claude Desktop danach **vollständig beenden** (auch im Infobereich) und neu starten.
@@ -110,7 +111,8 @@ claude mcp list
 ```
 
 `--scope user` macht den Server in allen Projekten verfügbar; ohne Angabe gilt er nur im aktuellen
-Projekt. In einer Claude-Code-Sitzung zeigt `/mcp` den Status.
+Projekt. In einer Claude-Code-Sitzung zeigt `/mcp` den Status. Enthält der Pfad Leerzeichen, ihn in
+Anführungszeichen setzen: `-- node "C:\Users\Max Muster\Open-Law-Austria\mcp-server\dist\stdio.js"`.
 
 ### Aktualisieren
 
@@ -185,11 +187,20 @@ Der Server hält die [Netiquette der RIS-OGD-Schnittstelle](https://data.bka.gv.
 - aussagekräftiger User-Agent (`OpenLaw-RIS-MCP/<version> (+Repo-URL)`)
 - **kein Massendownload**: Suchen ohne Kriterium werden abgelehnt, Trefferlisten sind paginiert (max. 100 pro Seite), Volltexte gibt es nur auf ausdrücklichen Abruf
 - Cache, damit Paginierung und Wiederholungen keine neuen Requests auslösen
-- Retries nur bei Netzwerkfehlern, 429 und 5xx, mit exponentiellem Backoff
+- Retries nur bei Netzwerkfehlern, 429 und 5xx, mit exponentiellem Backoff; `Retry-After` wird
+  beachtet, bei langen Wartezeiten (> 60 s) wird nicht erneut versucht
+- Zeitbudget von 90 s pro Tool-Aufruf; bricht der Client ab, werden Warteschlange und Retries gestoppt
+
+**Hinweis:** Das Rate-Limit gilt pro Server-Prozess. Claude Desktop und jede Claude-Code-Sitzung
+starten je einen eigenen stdio-Prozess. Bei normaler Recherche ist das unkritisch (jeder Prozess
+bleibt bei ≤ 0,5 Requests/s und arbeitet seriell), für viele parallele Sitzungen ist aber der
+spätere zentrale HTTP-Server die bessere Lösung, weil sich dort alle Clients eine Warteschlange teilen.
 
 Sicherheit: Es werden nur `https://data.bka.gv.at` und `https://ogd.ris.bka.gv.at` kontaktiert
 (Host-Allowlist, auch bei Redirects). `get_dokument` akzeptiert nur Dokumentnummern, keine URLs.
-Antworten sind größenbegrenzt; XML mit DOCTYPE/Entities wird abgelehnt.
+Antworten sind größenbegrenzt; Dokument-XML mit DOCTYPE-/ENTITY-Deklaration wird nicht verarbeitet.
+Dokumenttexte werden in der Ausgabe mit `<<<RIS-DOKUMENTTEXT …>>>`-Markern als Daten gekennzeichnet
+(Schutz vor Prompt-Injection über Dokumentinhalte).
 
 ---
 
@@ -220,15 +231,20 @@ verbindet ihn nur mit stdin/stdout.
 
 Für den späteren Zugriff vom MacBook über LAN oder Tailscale ist vorgesehen:
 
-1. `src/http.ts` mit dem Streamable-HTTP-Transport des MCP-SDK ergänzen; **ein** `RisClient`
-   pro Prozess, damit Rate-Limit und Cache für alle Clients gemeinsam gelten.
+1. `src/http.ts` mit dem Streamable-HTTP-Transport des MCP-SDK ergänzen (zustandsloser
+   JSON-Modus genügt, da nur Tools angeboten werden): `createServer(client)` **pro Session bzw.
+   Request**, aber **ein gemeinsamer** `RisClient` pro Prozess, damit Rate-Limit, Warteschlange und
+   Cache für alle Clients gemeinsam gelten.
 2. Nur an `127.0.0.1` binden und per `tailscale serve` (TLS, nur im Tailnet) veröffentlichen,
-   statt einen Port im LAN zu öffnen; zusätzlich Bearer-Token und Origin-Prüfung.
+   statt einen Port im LAN zu öffnen; zusätzlich Bearer-Token (Vergleich in konstanter Zeit) sowie
+   Host-/Origin-Prüfung (den `*.ts.net`-Hostnamen erlauben).
 3. Claude Code auf dem MacBook verbindet sich direkt:
    `claude mcp add --transport http openlaw-ris https://<homeserver>.<tailnet>.ts.net/mcp`.
-   Bei Claude Desktop beachten, dass Remote-Connectors je nach Version über Anthropic-Server
-   aufgebaut werden und ein reines Tailnet dann nicht erreichen. Verlässlich ist eine lokale
-   stdio-Brücke (z. B. `mcp-remote`) oder weiterhin die lokale stdio-Installation.
+   Bei Claude Desktop beachten: Über die Connector-Oberfläche hinzugefügte Remote-Server werden aus
+   der Anthropic-Cloud angesprochen und erreichen ein reines Tailnet nicht; `claude_desktop_config.json`
+   kennt nur stdio. Verlässlich ist dort eine lokale stdio-Brücke wie `mcp-remote` (Token per
+   `--header`, unter Windows den Header-Wert über eine Umgebungsvariable übergeben) oder weiterhin
+   die lokale stdio-Installation.
 
 Da der Server zustandslos ist und keine Secrets braucht, kann er parallel lokal (stdio) und
 später remote (HTTP) laufen.

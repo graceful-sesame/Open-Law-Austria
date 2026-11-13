@@ -10,6 +10,7 @@ import {
   datumSchema,
   filterSummary,
   formatJudikaturHits,
+  mergeExtraParams,
   noHitsText,
   normalizeDate,
   pagingFooter,
@@ -106,7 +107,8 @@ export function buildJudikaturParams(a: Args): Record<string, string> {
     p[apiName] = value;
   }
   if (a.bundesland) Object.assign(p, bundeslandParams(app, [a.bundesland]));
-  Object.assign(p, sortParams(a.sortierung), a.weitere_parameter ?? {}, pagingParams(a.seite, a.pro_seite));
+  Object.assign(p, sortParams(a.sortierung), pagingParams(a.seite, a.pro_seite));
+  mergeExtraParams(p, a.weitere_parameter);
   const searchable = Object.keys(p).filter(
     (k) => !k.startsWith("Dokumenttyp.") && !k.startsWith("Sortierung.") && k !== "DokumenteProSeite" && k !== "Seitennummer",
   );
@@ -136,12 +138,12 @@ export function registerSearchJudikatur(server: McpServer, client: RisClient): v
       inputSchema: searchJudikaturShape,
       annotations: { readOnlyHint: true, openWorldHint: true, idempotentHint: true },
     },
-    async (args) =>
-      safely(async () => {
+    async (args, extra) =>
+      safely(extra, async (signal) => {
         const a = args as Args;
         const app = JUDIKATUR_APPS[a.applikation];
         const params = buildJudikaturParams(a);
-        const res = await client.search(app, params);
+        const res = await client.search(app, params, signal);
         const filters = filterSummary({
           applikation: a.applikation,
           suchworte: a.suchworte,
@@ -163,7 +165,9 @@ export function registerSearchJudikatur(server: McpServer, client: RisClient): v
               `Für Entscheidungstexte zusätzlich ohne norm suchen, z. B. suchworte='"${a.norm.replace(/^(.*?)\s*§\s*(\S+).*$/, "§ $2")}" ${(a.norm.split(/\s*§/)[0] ?? "").trim()}'.`
             : "";
         if (res.total === 0 || res.hits.length === 0) {
-          return textResult([noHitsText(`Judikatur (${app.label})`, filters), justizNormHint].filter(Boolean).join("\n"));
+          return textResult(
+            [noHitsText(`Judikatur (${app.label})`, filters, [], res, a.seite), justizNormHint].filter(Boolean).join("\n"),
+          );
         }
         const offset = ((a.seite ?? 1) - 1) * (res.pageSize || res.hits.length);
         const body = formatJudikaturHits(client, app, res.hits, offset);

@@ -4,6 +4,7 @@ import { BUNDESRECHT_APPS, LANDESRECHT_APPS, type AppInfo, type Bundesland } fro
 import type { RisClient } from "../ris/client.js";
 import { RisError } from "../ris/errors.js";
 import { getStr, type SearchHit } from "../ris/normalize.js";
+import { documentLink } from "../ris/documentId.js";
 import { bundeslandParams, bundeslandSchema, datumSchema, normalizeDate, safely, textResult, todayVienna } from "./common.js";
 import { DEFAULT_MAX_CHARS, renderDocument } from "./getDokument.js";
 import { normalizeParagraphLabel, parseParagraph, type AbschnittTyp } from "./paragraph.js";
@@ -75,11 +76,14 @@ export function registerGetNorm(server: McpServer, client: RisClient): void {
       inputSchema: getNormShape,
       annotations: { readOnlyHint: true, openWorldHint: true, idempotentHint: true },
     },
-    async (args) => safely(async () => runGetNorm(client, args as Args)),
+    async (args, extra) => safely(extra, (signal) => runGetNorm(client, args as Args, signal)),
   );
 }
 
-export async function runGetNorm(client: RisClient, a: Args) {
+/** Maximal so viele Ergebnisseiten (à 100) lädt get_norm nach. */
+const MAX_PAGES = 5;
+
+export async function runGetNorm(client: RisClient, a: Args, signal?: AbortSignal) {
   if (!a.gesetz && !a.gesetzesnummer) {
     throw new RisError("invalid_params", "Bitte `gesetz` (z. B. \"StGB\") oder `gesetzesnummer` angeben.");
   }
@@ -105,8 +109,17 @@ export async function runGetNorm(client: RisClient, a: Args) {
   if (!a.fassungen) params["Fassung.FassungVom"] = stichtag;
   if (a.bundesland) Object.assign(params, bundeslandParams(app, [a.bundesland as Bundesland]));
 
-  const res = await client.search(app, params);
-  let hits = res.hits.filter((h) => normalizeParagraphLabel(getStr(h.meta, "ArtikelParagraphAnlage") ?? "") === q.exact);
+  const res = await client.search(app, params, signal);
+  const allHits = [...res.hits];
+  let page = 1;
+  while (allHits.length < res.total && page < MAX_PAGES) {
+    page++;
+    const next = await client.search(app, { ...params, Seitennummer: String(page) }, signal);
+    if (next.hits.length === 0) break;
+    allHits.push(...next.hits);
+  }
+  const incomplete = allHits.length < res.total;
+  let hits = allHits.filter((h) => normalizeParagraphLabel(getStr(h.meta, "ArtikelParagraphAnlage") ?? "") === q.exact);
 
   if (!a.gesetzesnummer && a.gesetz && hits.length) {
     const best = Math.max(...hits.map((h) => lawMatchScore(h, a.gesetz!)));
@@ -120,7 +133,9 @@ export async function runGetNorm(client: RisClient, a: Args) {
     const hint =
       res.total > 0
         ? `Die API fand ${res.total} Dokument(e) im Bereich, aber keines mit exakt "${wanted}".`
-        : a.fassungen
+        : incomplete
+          ? `Es wurden nur ${allHits.length} von ${res.total} Rohtreffern geprüft – bitte gesetzesnummer angeben.`
+          : a.fassungen
           ? ""
           : `Evtl. galt die Bestimmung am ${stichtag} (noch) nicht – fassungen=true zeigt alle Fassungen.`;
     throw new RisError(
@@ -138,7 +153,8 @@ export async function runGetNorm(client: RisClient, a: Args) {
     laws.set(nr, [...(laws.get(nr) ?? []), h]);
   }
   if (laws.size > 1) {
-    const lines = [...laws.entries()].map(([nr, hs]) => `- ${lawLabel(hs[0]!)} · Gesetzesnummer ${nr} · ${hs[0]!.id}`);
+    const lines = [...laws.entries()].slice(0, 15).map(([nr, hs]) => `- ${lawLabel(hs[0]!)} · Gesetzesnummer ${nr} · ${hs[0]!.id}`);
+    if (laws.size > 15) lines.push(`- … und ${laws.size - 15} weitere`);
     return textResult(
       [
         `${wanted}: ${lawText} ist nicht eindeutig – ${laws.size} Rechtsvorschriften kommen in Frage (Auswahl der am besten passenden):`,
@@ -157,12 +173,13 @@ export async function runGetNorm(client: RisClient, a: Args) {
   if (a.fassungen) {
     const lines = sorted.map(
       (h, i) =>
-        `[${i + 1}] ${geltung(h)} · ${getStr(h.meta, "Kundmachungsorgan") ?? ""}\n    ID: ${h.id} · ${client.config.linkBase}/Dokument.wxe?Abfrage=${app.folder}&Dokumentnummer=${h.id}`,
+        `[${i + 1}] ${geltung(h)} · ${getStr(h.meta, "Kundmachungsorgan") ?? ""}\n    ID: ${h.id} · ${documentLink(client.config.linkBase, app, h.id)}`,
     );
     return textResult(
       [
         `# ${wanted} ${lawLabel(sorted[0]!)} – ${sorted.length} Fassung(en)`,
         `Gesetzesnummer: ${gesetzesnummer}`,
+        ...(incomplete ? [`Achtung: Liste möglicherweise unvollständig (${res.total} Rohtreffer) – mit gesetzesnummer präziser suchen.`] : []),
         "",
         ...lines,
         "",
@@ -173,7 +190,7 @@ export async function runGetNorm(client: RisClient, a: Args) {
 
   // Am Stichtag sollte genau eine Fassung gelten; sonst die zuletzt in Kraft getretene nehmen.
   const hit = sorted[sorted.length - 1]!;
-  const doc = await client.getDocument(hit.id, app.name);
+  const doc = await client.getDocument(hit.id, app.name, signal);
   const gesamt = toPublicUrl(getStr(hit.meta, "GesamteRechtsvorschriftUrl"));
   const preamble = [
     `Fassung zum Stichtag ${stichtag}: gültig ${geltung(hit)}${sorted.length > 1 ? ` (Achtung: ${sorted.length} Dokumente am Stichtag, neuestes gewählt)` : ""}`,
