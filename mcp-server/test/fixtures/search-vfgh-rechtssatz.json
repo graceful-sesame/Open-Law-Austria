@@ -1,0 +1,94 @@
+{
+ "OgdSearchResult": {
+  "OgdDocumentResults": {
+   "Hits": {
+    "@pageNumber": "1",
+    "@pageSize": "10",
+    "#text": "50034"
+   },
+   "OgdDocumentReference": [
+    {
+     "Data": {
+      "Metadaten": {
+       "Technisch": {
+        "ID": "JFR_20261007_26E00850_01",
+        "Applikation": "Vfgh",
+        "Organ": "Verfassungsgerichtshof (VfGH)",
+        "ImportTimestamp": {
+         "@xsi:nil": "true",
+         "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance"
+        }
+       },
+       "Allgemein": {
+        "Geaendert": "2026-11-09",
+        "DokumentUrl": "https://ogd.ris.bka.gv.at/Dokument.wxe?Abfrage=Vfgh&Dokumentnummer=JFR_20261007_26E00850_01"
+       },
+       "Judikatur": {
+        "Dokumenttyp": "Rechtssatz",
+        "Geschaeftszahl": {
+         "item": "E850/2026"
+        },
+        "Normen": {
+         "item": [
+          "BVG-Rassendiskriminierung ArtI Abs1",
+          "AsylG 2005 §8, §10, §57",
+          "FremdenpolizeiG 2005 §46, §52, §55",
+          "VfGG §7 Abs1"
+         ]
+        },
+        "Entscheidungsdatum": "2026-10-07",
+        "Schlagworte": "Asylrecht, Entscheidungsbegründung, Ermittlungsverfahren, Rückkehrentscheidung",
+        "EuropeanCaseLawIdentifier": "ECLI:AT:VFGH:2026:E850.2026",
+        "Vfgh": {
+         "Entscheidungsart": "Erkenntnis",
+         "Gericht": "Verfassungsgerichtshof (VfGH)",
+         "Indizes": {
+          "item": "41/02 Staatsbürgerschaft, Pass- und Melderecht, Fremdenrecht, Asylrecht"
+         },
+         "Leitsatz": "Verletzung im Recht auf Gleichbehandlung von Fremden untereinander betreffend die Abweisung eines Antrags eines afghanischen Staatsangehörigen auf Zuerkennung des Status eines subsidiär Schutzberechtigten mangels hinreichender Auseinandersetzung mit der aktuellen Versorgungslage und der individuellen Situation des Antragstellers ",
+         "Entscheidungstexte": {
+          "item": {
+           "Geschaeftszahl": "E850/2026",
+           "Dokumenttyp": "Text",
+           "Gericht": "VfGH",
+           "Entscheidungsdatum": "2026-10-07",
+           "DokumentUrl": "https://ogd.ris.bka.gv.at/Dokument.wxe?Abfrage=Vfgh&Dokumentnummer=JFT_20261007_26E00850_00",
+           "Dokumentnummer": "JFT_20261007_26E00850_00",
+           "Entscheidungsart": "Erkenntnis"
+          }
+         }
+        }
+       }
+      },
+      "Dokumentliste": {
+       "ContentReference": {
+        "ContentType": "MainDocument",
+        "Name": "Hauptdokument",
+        "Urls": {
+         "ContentUrl": [
+          {
+           "DataType": "Xml",
+           "Url": "https://ogd.ris.bka.gv.at/Dokumente/Vfgh/JFR_20261007_26E00850_01/JFR_20261007_26E00850_01.xml"
+          },
+          {
+           "DataType": "Html",
+           "Url": "https://ogd.ris.bka.gv.at/Dokumente/Vfgh/JFR_20261007_26E00850_01/JFR_20261007_26E00850_01.html"
+          },
+          {
+           "DataType": "Rtf",
+           "Url": "https://ogd.ris.bka.gv.at/Dokumente/Vfgh/JFR_20261007_26E00850_01/JFR_20261007_26E00850_01.rtf"
+          },
+          {
+           "DataType": "Pdf",
+           "Url": "https://ogd.ris.bka.gv.at/Dokumente/Vfgh/JFR_20261007_26E00850_01/JFR_20261007_26E00850_01.pdf"
+          }
+         ]
+        }
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

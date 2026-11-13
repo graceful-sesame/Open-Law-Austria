@@ -1,0 +1,3 @@
+# Der MCP-Server (mcp-server/) ist ein eigenständiges Paket für den lokalen
+# Betrieb und gehört nicht ins OpenLaw-Docker-Image.
+mcp-server

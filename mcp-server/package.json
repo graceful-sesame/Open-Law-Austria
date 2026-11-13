@@ -1,0 +1,32 @@
+{
+  "name": "openlaw-ris-mcp",
+  "version": "0.1.0",
+  "description": "MCP-Server für die RIS-OGD-API v2.6 (Judikatur, Bundes- und Landesrecht)",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "openlaw-ris-mcp": "dist/stdio.js"
+  },
+  "main": "dist/server.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/stdio.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "pretest": "tsc -p tsconfig.test.json",
+    "test": "node --test \"build/test/**/*.test.js\"",
+    "test:live": "npm run pretest && node --test --test-concurrency=1 \"build/test/**/*.live.js\""
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "fast-xml-parser": "^5.12.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "typescript": "~5.9.3"
+  }
+}

@@ -1,0 +1,8 @@
+{
+ "OgdSearchResult": {
+  "Error": {
+   "Applikation": "Justiz",
+   "Message": "soap:Client. Schema Validation Error: The 'http://ris.bka.gv.at/ogd/V2_6:DokumenteProSeite' element is invalid - The value 'Foo' is invalid according to its datatype 'http://ris.bka.gv.at/ogd/V2_6:PageSize' - The Enumeration constraint failed."
+  }
+ }
+}
